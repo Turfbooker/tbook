@@ -42,11 +42,9 @@
                         
                         <div class="mb-4">
                             <label class="form-label">{{ form.role.label }}</label>
-                            <div class="btn-group role-toggle w-100" role="group">
-                                <button type="button" class="btn btn-outline-primary active" data-role="player">Player</button>
-                                <button type="button" class="btn btn-outline-primary" data-role="owner">Turf Owner</button>
+                            <div class="form-control">
+                                {{ form.role(class="form-select") }}
                             </div>
-                            {{ form.role(class="d-none") }}
                         </div>
                         
                         <div class="d-grid gap-2">
@@ -68,35 +66,8 @@
 {% block extra_js %}
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Get the role input element
-        const roleInput = document.querySelector('input[name="role"]');
-        
-        // Only proceed if the roleInput exists on this page
-        if (roleInput) {
-            // Set default value for role select
-            roleInput.value = 'player';
-            
-            // Handle role toggle
-            const roleButtons = document.querySelectorAll('.role-toggle button');
-            
-            roleButtons.forEach(button => {
-                button.addEventListener('click', function() {
-                    // Remove active class from all buttons
-                    roleButtons.forEach(btn => {
-                        btn.classList.remove('active', 'btn-primary');
-                        btn.classList.add('btn-outline-primary');
-                    });
-                    
-                    // Add active class to clicked button
-                    button.classList.remove('btn-outline-primary');
-                    button.classList.add('active', 'btn-primary');
-                    
-                    // Set the role input value
-                    roleInput.value = button.dataset.role;
-                    console.log('Role changed to:', button.dataset.role);
-                });
-            });
-        }
+        // Role is now handled directly by the form select element
+        // No additional JavaScript needed for role selection
     });
 </script>
 {% endblock %}
