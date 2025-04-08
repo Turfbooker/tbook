@@ -1,0 +1,203 @@
+{% extends "layout.html" %}
+
+{% block title %}Player Dashboard - TurfBook{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <h1 class="mb-4">Welcome, {{ current_user.username }}!</h1>
+            
+            <!-- Search Box -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title mb-3">Find a Turf</h5>
+                    <form action="{{ url_for('search_turfs') }}" method="GET" class="search-form">
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                {{ search_form.location(class="form-control", placeholder="Location") }}
+                            </div>
+                            <div class="col-md-3">
+                                {{ search_form.date(class="form-control") }}
+                            </div>
+                            <div class="col-md-2">
+                                {{ search_form.surface_type(class="form-select") }}
+                            </div>
+                            <div class="col-md-3">
+                                <div class="d-grid">
+                                    {{ search_form.submit(class="btn btn-primary") }}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="collapse mt-3" id="advancedSearch">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Price Range (₹)</label>
+                                    <div class="row">
+                                        <div class="col">
+                                            {{ search_form.min_price(class="form-control", placeholder="Min") }}
+                                        </div>
+                                        <div class="col-auto pt-2">
+                                            -
+                                        </div>
+                                        <div class="col">
+                                            {{ search_form.max_price(class="form-control", placeholder="Max") }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="text-center mt-2">
+                            <a class="btn btn-link btn-sm" data-bs-toggle="collapse" href="#advancedSearch" role="button">
+                                <i class="fas fa-sliders-h me-1"></i> Advanced Search
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if is_search_results %}
+        <!-- Search Results -->
+        <div class="row mb-4">
+            <div class="col-md-12">
+                <h2 class="mb-3">Search Results</h2>
+                {% if turfs %}
+                    <div class="row">
+                        {% for turf in turfs %}
+                            <div class="col-md-4 mb-4">
+                                <div class="card turf-card h-100">
+                                    <div class="card-img-top turf-card-img bg-dark d-flex align-items-center justify-content-center">
+                                        <i class="fas fa-futbol fa-3x text-muted"></i>
+                                    </div>
+                                    <div class="card-body">
+                                        <h5 class="card-title">{{ turf.name }}</h5>
+                                        <p class="card-text text-muted">{{ turf.location }}</p>
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <span class="badge bg-info">{{ turf.surface_type }}</span>
+                                            <span class="fw-bold">₹{{ turf.price_per_hour }}/hr</span>
+                                        </div>
+                                        <p class="card-text small text-truncate">{{ turf.description }}</p>
+                                        <a href="{{ url_for('turf_details', turf_id=turf.id) }}" class="btn btn-outline-primary w-100">View Details</a>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i> No turfs found matching your search criteria. Try adjusting your filters.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    {% else %}
+        <!-- Upcoming Bookings -->
+        <div class="row mb-4">
+            <div class="col-md-12">
+                <h2 class="mb-3">Upcoming Bookings</h2>
+                {% if upcoming_bookings %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Turf</th>
+                                    <th>Date</th>
+                                    <th>Time</th>
+                                    <th>Status</th>
+                                    <th>Payment</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for booking in upcoming_bookings %}
+                                    <tr>
+                                        <td>{{ booking.turf.name }}</td>
+                                        <td>{{ booking.booking_date.strftime('%d %b, %Y') }}</td>
+                                        <td>{{ booking.start_time.strftime('%I:%M %p') }} - {{ booking.end_time.strftime('%I:%M %p') }}</td>
+                                        <td>
+                                            {% if booking.status == 'pending' %}
+                                                <span class="badge bg-warning text-dark">Pending</span>
+                                            {% elif booking.status == 'confirmed' %}
+                                                <span class="badge bg-success">Confirmed</span>
+                                            {% elif booking.status == 'cancelled' %}
+                                                <span class="badge bg-danger">Cancelled</span>
+                                            {% elif booking.status == 'completed' %}
+                                                <span class="badge bg-info">Completed</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if booking.payment_status == 'paid' %}
+                                                <span class="badge bg-success">Paid</span>
+                                            {% else %}
+                                                <span class="badge bg-danger">Unpaid</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <div class="btn-group btn-group-sm">
+                                                <a href="{{ url_for('turf_details', turf_id=booking.turf.id) }}" class="btn btn-outline-primary" title="View Turf">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                                {% if booking.payment_status == 'unpaid' %}
+                                                    <a href="{{ url_for('checkout', booking_id=booking.id) }}" class="btn btn-outline-success" title="Pay Now">
+                                                        <i class="fas fa-credit-card"></i>
+                                                    </a>
+                                                {% endif %}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="text-end">
+                        <a href="{{ url_for('booking_history') }}" class="btn btn-link">View All Bookings</a>
+                    </div>
+                {% else %}
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i> You don't have any upcoming bookings. Start by searching for turfs!
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Recommended Turfs -->
+        <div class="row mb-4">
+            <div class="col-md-12">
+                <h2 class="mb-3">Recommended Turfs</h2>
+                <div class="row">
+                    {% if recommended_turfs %}
+                        {% for turf in recommended_turfs %}
+                            <div class="col-md-3 mb-4">
+                                <div class="card turf-card h-100">
+                                    <div class="card-img-top turf-card-img bg-dark d-flex align-items-center justify-content-center">
+                                        <i class="fas fa-futbol fa-3x text-muted"></i>
+                                    </div>
+                                    <div class="card-body">
+                                        <h5 class="card-title">{{ turf.name }}</h5>
+                                        <p class="card-text text-muted">{{ turf.location }}</p>
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <span class="badge bg-info">{{ turf.surface_type }}</span>
+                                            <span class="fw-bold">₹{{ turf.price_per_hour }}/hr</span>
+                                        </div>
+                                    </div>
+                                    <div class="card-footer bg-transparent border-top-0">
+                                        <a href="{{ url_for('turf_details', turf_id=turf.id) }}" class="btn btn-outline-primary btn-sm w-100">View Details</a>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="col-12">
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle me-2"></i> No recommended turfs available at the moment.
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

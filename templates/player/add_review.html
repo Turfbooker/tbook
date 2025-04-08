@@ -1,0 +1,127 @@
+{% extends "layout.html" %}
+
+{% block title %}Add Review - TurfBook{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary bg-opacity-25">
+                    <h3 class="mb-0">Review Your Booking</h3>
+                </div>
+                <div class="card-body">
+                    <!-- Booking details -->
+                    <div class="mb-4">
+                        <h5>Booking Details</h5>
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <dl class="mb-0">
+                                            <dt>Turf</dt>
+                                            <dd>{{ booking.turf.name }}</dd>
+                                            
+                                            <dt>Location</dt>
+                                            <dd>{{ booking.turf.location }}</dd>
+                                        </dl>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <dl class="mb-0">
+                                            <dt>Date</dt>
+                                            <dd>{{ booking.booking_date.strftime('%d %B, %Y') }}</dd>
+                                            
+                                            <dt>Time</dt>
+                                            <dd>{{ booking.start_time.strftime('%I:%M %p') }} - {{ booking.end_time.strftime('%I:%M %p') }}</dd>
+                                        </dl>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Review form -->
+                    <form method="POST" action="{{ url_for('add_review', booking_id=booking.id) }}">
+                        {{ form.hidden_tag() }}
+                        
+                        <div class="mb-4">
+                            <label class="form-label">{{ form.rating.label }}</label>
+                            <div class="star-rating-select mb-2">
+                                <div class="btn-group" role="group">
+                                    {% for choice in form.rating.choices %}
+                                        <input type="radio" class="btn-check" name="rating" id="rating{{ choice[0] }}" value="{{ choice[0] }}" {% if loop.first %}checked{% endif %}>
+                                        <label class="btn btn-outline-warning" for="rating{{ choice[0] }}">
+                                            {% for i in range(choice[0]) %}
+                                                <i class="fas fa-star"></i>
+                                            {% endfor %}
+                                        </label>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            {% if form.rating.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.rating.errors %}
+                                        <span>{{ error }}</span>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-4">
+                            {{ form.comment.label(class="form-label") }}
+                            {% if form.comment.errors %}
+                                {{ form.comment(class="form-control is-invalid", rows=4, placeholder="Share your experience with this turf...") }}
+                                <div class="invalid-feedback">
+                                    {% for error in form.comment.errors %}
+                                        <span>{{ error }}</span>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                {{ form.comment(class="form-control", rows=4, placeholder="Share your experience with this turf...") }}
+                            {% endif %}
+                            <div class="form-text">Optional, but helpful for other players.</div>
+                        </div>
+                        
+                        <div class="d-grid">
+                            {{ form.submit(class="btn btn-primary btn-lg") }}
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Highlight stars on rating select
+        const ratingInputs = document.querySelectorAll('input[name="rating"]');
+        const ratingLabels = document.querySelectorAll('.star-rating-select label');
+        
+        ratingInputs.forEach(input => {
+            input.addEventListener('change', function() {
+                const selectedValue = parseInt(this.value);
+                
+                ratingLabels.forEach((label, index) => {
+                    if (index + 1 <= selectedValue) {
+                        label.classList.add('active', 'btn-warning');
+                        label.classList.remove('btn-outline-warning');
+                    } else {
+                        label.classList.remove('active', 'btn-warning');
+                        label.classList.add('btn-outline-warning');
+                    }
+                });
+            });
+        });
+        
+        // Trigger change event on the checked input to initialize the display
+        const checkedInput = document.querySelector('input[name="rating"]:checked');
+        if (checkedInput) {
+            const event = new Event('change');
+            checkedInput.dispatchEvent(event);
+        }
+    });
+</script>
+{% endblock %}

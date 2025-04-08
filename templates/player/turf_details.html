@@ -1,0 +1,180 @@
+{% extends "layout.html" %}
+
+{% block title %}{{ turf.name }} - TurfBook{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1 class="mb-3">{{ turf.name }}</h1>
+            <div class="d-flex flex-wrap align-items-center mb-3">
+                <div class="me-3 mb-2">
+                    <i class="fas fa-map-marker-alt text-danger me-1"></i> {{ turf.location }}
+                </div>
+                <div class="me-3 mb-2">
+                    <i class="fas fa-leaf text-success me-1"></i> {{ turf.surface_type }}
+                </div>
+                <div class="me-3 mb-2">
+                    <i class="fas fa-ruler text-info me-1"></i> {{ turf.size }}
+                </div>
+                <div class="me-3 mb-2">
+                    <i class="fas fa-clock text-warning me-1"></i> {{ turf.opening_time.strftime('%I:%M %p') }} - {{ turf.closing_time.strftime('%I:%M %p') }}
+                </div>
+            </div>
+            
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Description</h5>
+                    <p class="card-text">{{ turf.description }}</p>
+                </div>
+            </div>
+            
+            <div class="card mb-4">
+                <div class="card-header bg-info bg-opacity-25">
+                    <h5 class="mb-0">Amenities</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-group list-group-flush">
+                        {% for amenity in turf.amenities.split(',') %}
+                            <li class="list-group-item bg-transparent"><i class="fas fa-check-circle text-success me-2"></i> {{ amenity.strip() }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+            
+            {% if reviews %}
+                <div class="card mb-4">
+                    <div class="card-header bg-warning bg-opacity-25">
+                        <h5 class="mb-0">Reviews</h5>
+                    </div>
+                    <div class="card-body">
+                        {% for review in reviews %}
+                            <div class="review-card p-3 mb-3 border-start">
+                                <div class="d-flex justify-content-between mb-2">
+                                    <div class="star-rating">
+                                        {% for i in range(review.rating) %}
+                                            <i class="fas fa-star"></i>
+                                        {% endfor %}
+                                        {% for i in range(5 - review.rating) %}
+                                            <i class="far fa-star"></i>
+                                        {% endfor %}
+                                    </div>
+                                    <small class="text-muted">{{ review.created_at.strftime('%d %b, %Y') }}</small>
+                                </div>
+                                {% if review.comment %}
+                                    <p class="mb-0">{{ review.comment }}</p>
+                                {% else %}
+                                    <p class="text-muted mb-0"><i>No comment provided</i></p>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card sticky-top" style="top: 80px;">
+                <div class="card-header bg-primary bg-opacity-25">
+                    <h5 class="mb-0">Book This Turf</h5>
+                </div>
+                <div class="card-body">
+                    <div class="pricing-header mb-3 text-center">
+                        <h3 class="mb-0" id="hourly-rate" data-price="{{ turf.price_per_hour }}">₹{{ turf.price_per_hour }}/hour</h3>
+                    </div>
+                    
+                    {% if current_user.is_authenticated and current_user.role == 'player' %}
+                        <form id="booking-form" method="POST" action="{{ url_for('turf_details', turf_id=turf.id) }}">
+                            {{ booking_form.hidden_tag() }}
+                            {{ booking_form.turf_id }}
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Select Date</label>
+                                <div class="input-group">
+                                    <button type="button" class="btn btn-outline-secondary" id="prev-date">
+                                        <i class="fas fa-chevron-left"></i>
+                                    </button>
+                                    {{ booking_form.booking_date(class="form-control text-center", id="booking_date") }}
+                                    <button type="button" class="btn btn-outline-secondary" id="next-date">
+                                        <i class="fas fa-chevron-right"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="booking-calendar">
+                                <h6>Available Time Slots</h6>
+                                <small class="text-muted d-block mb-2">Click to select start and end times</small>
+                                
+                                <div class="time-slots">
+                                    {% set opening_hour = turf.opening_time.hour %}
+                                    {% set closing_hour = turf.closing_time.hour %}
+                                    
+                                    {% for hour in range(opening_hour, closing_hour) %}
+                                        {% set time_str = '{:02d}:00'.format(hour) %}
+                                        {% set is_booked = False %}
+                                        
+                                        {% for booking in existing_bookings %}
+                                            {% set start_hour = booking.start_time.hour %}
+                                            {% set end_hour = booking.end_time.hour %}
+                                            
+                                            {% if hour >= start_hour and hour < end_hour %}
+                                                {% set is_booked = True %}
+                                            {% endif %}
+                                        {% endfor %}
+                                        
+                                        {% if is_booked %}
+                                            <div class="time-slot booked" data-time="{{ time_str }}">
+                                                {{ '{:d}:00'.format(hour % 12 if hour % 12 else 12) }} {{ 'PM' if hour >= 12 else 'AM' }}
+                                            </div>
+                                        {% else %}
+                                            <div class="time-slot available" data-time="{{ time_str }}">
+                                                {{ '{:d}:00'.format(hour % 12 if hour % 12 else 12) }} {{ 'PM' if hour >= 12 else 'AM' }}
+                                            </div>
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+                                
+                                <button type="button" id="reset-time-selection" class="btn btn-link btn-sm mt-2">
+                                    <i class="fas fa-sync-alt me-1"></i> Reset Selection
+                                </button>
+                            </div>
+                            
+                            <div class="row mb-3">
+                                <div class="col-6">
+                                    <label class="form-label">Start Time</label>
+                                    {{ booking_form.start_time(class="form-control", readonly=true) }}
+                                </div>
+                                <div class="col-6">
+                                    <label class="form-label">End Time</label>
+                                    {{ booking_form.end_time(class="form-control", readonly=true) }}
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3 text-center">
+                                <h5>Total: <span id="calculated-price"></span></h5>
+                            </div>
+                            
+                            <div class="d-grid">
+                                {{ booking_form.submit(class="btn btn-primary") }}
+                            </div>
+                        </form>
+                    {% else %}
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i> 
+                            {% if not current_user.is_authenticated %}
+                                Please <a href="{{ url_for('login') }}">login</a> as a player to book this turf.
+                            {% elif current_user.role != 'player' %}
+                                Only players can book turfs. Please login with a player account.
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/booking.js') }}"></script>
+{% endblock %}

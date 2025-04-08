@@ -1,0 +1,328 @@
+{% extends "layout.html" %}
+
+{% block title %}Booking Requests - TurfBook{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="mb-4">Booking Requests</h1>
+    
+    <!-- Tabs for different booking statuses -->
+    <ul class="nav nav-tabs mb-4" id="bookingTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="all-tab" data-bs-toggle="tab" data-bs-target="#all" type="button" role="tab" aria-controls="all" aria-selected="true">
+                All Bookings
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="pending-tab" data-bs-toggle="tab" data-bs-target="#pending" type="button" role="tab" aria-controls="pending" aria-selected="false">
+                Pending
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="confirmed-tab" data-bs-toggle="tab" data-bs-target="#confirmed" type="button" role="tab" aria-controls="confirmed" aria-selected="false">
+                Confirmed
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="completed-tab" data-bs-toggle="tab" data-bs-target="#completed" type="button" role="tab" aria-controls="completed" aria-selected="false">
+                Completed
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="cancelled-tab" data-bs-toggle="tab" data-bs-target="#cancelled" type="button" role="tab" aria-controls="cancelled" aria-selected="false">
+                Cancelled
+            </button>
+        </li>
+    </ul>
+    
+    <!-- Tab content -->
+    <div class="tab-content" id="bookingTabsContent">
+        <!-- All Bookings -->
+        <div class="tab-pane fade show active" id="all" role="tabpanel" aria-labelledby="all-tab">
+            {% if bookings %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Turf</th>
+                                <th>Date</th>
+                                <th>Time</th>
+                                <th>Player</th>
+                                <th>Price</th>
+                                <th>Status</th>
+                                <th>Payment</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for booking in bookings %}
+                                <tr>
+                                    <td>{{ booking.turf.name }}</td>
+                                    <td>{{ booking.booking_date.strftime('%d %b, %Y') }}</td>
+                                    <td>{{ booking.start_time.strftime('%I:%M %p') }} - {{ booking.end_time.strftime('%I:%M %p') }}</td>
+                                    <td>{{ booking.player.user.username }}</td>
+                                    <td>₹{{ booking.total_price }}</td>
+                                    <td>
+                                        {% if booking.status == 'pending' %}
+                                            <span class="badge bg-warning text-dark">Pending</span>
+                                        {% elif booking.status == 'confirmed' %}
+                                            <span class="badge bg-success">Confirmed</span>
+                                        {% elif booking.status == 'cancelled' %}
+                                            <span class="badge bg-danger">Cancelled</span>
+                                        {% elif booking.status == 'completed' %}
+                                            <span class="badge bg-info">Completed</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if booking.payment_status == 'paid' %}
+                                            <span class="badge bg-success">Paid</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">Unpaid</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if booking.status == 'pending' %}
+                                            <div class="btn-group btn-group-sm">
+                                                <form method="POST" action="{{ url_for('update_booking_status', booking_id=booking.id, status='confirmed') }}">
+                                                    <button type="submit" class="btn btn-outline-success me-1 status-update-btn" data-status="confirm" data-booking-id="{{ booking.id }}">
+                                                        <i class="fas fa-check"></i> Confirm
+                                                    </button>
+                                                </form>
+                                                <form method="POST" action="{{ url_for('update_booking_status', booking_id=booking.id, status='cancelled') }}">
+                                                    <button type="submit" class="btn btn-outline-danger status-update-btn" data-status="cancel" data-booking-id="{{ booking.id }}">
+                                                        <i class="fas fa-times"></i> Cancel
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i> No bookings found.
+                </div>
+            {% endif %}
+        </div>
+        
+        <!-- Pending Bookings -->
+        <div class="tab-pane fade" id="pending" role="tabpanel" aria-labelledby="pending-tab">
+            {% set pending_bookings = bookings|selectattr('status', 'equalto', 'pending')|list %}
+            {% if pending_bookings %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Turf</th>
+                                <th>Date</th>
+                                <th>Time</th>
+                                <th>Player</th>
+                                <th>Price</th>
+                                <th>Payment</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for booking in pending_bookings %}
+                                <tr>
+                                    <td>{{ booking.turf.name }}</td>
+                                    <td>{{ booking.booking_date.strftime('%d %b, %Y') }}</td>
+                                    <td>{{ booking.start_time.strftime('%I:%M %p') }} - {{ booking.end_time.strftime('%I:%M %p') }}</td>
+                                    <td>{{ booking.player.user.username }}</td>
+                                    <td>₹{{ booking.total_price }}</td>
+                                    <td>
+                                        {% if booking.payment_status == 'paid' %}
+                                            <span class="badge bg-success">Paid</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">Unpaid</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <form method="POST" action="{{ url_for('update_booking_status', booking_id=booking.id, status='confirmed') }}">
+                                                <button type="submit" class="btn btn-outline-success me-1 status-update-btn" data-status="confirm" data-booking-id="{{ booking.id }}">
+                                                    <i class="fas fa-check"></i> Confirm
+                                                </button>
+                                            </form>
+                                            <form method="POST" action="{{ url_for('update_booking_status', booking_id=booking.id, status='cancelled') }}">
+                                                <button type="submit" class="btn btn-outline-danger status-update-btn" data-status="cancel" data-booking-id="{{ booking.id }}">
+                                                    <i class="fas fa-times"></i> Cancel
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i> No pending bookings found.
+                </div>
+            {% endif %}
+        </div>
+        
+        <!-- Confirmed Bookings -->
+        <div class="tab-pane fade" id="confirmed" role="tabpanel" aria-labelledby="confirmed-tab">
+            {% set confirmed_bookings = bookings|selectattr('status', 'equalto', 'confirmed')|list %}
+            {% if confirmed_bookings %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Turf</th>
+                                <th>Date</th>
+                                <th>Time</th>
+                                <th>Player</th>
+                                <th>Price</th>
+                                <th>Payment</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for booking in confirmed_bookings %}
+                                <tr>
+                                    <td>{{ booking.turf.name }}</td>
+                                    <td>{{ booking.booking_date.strftime('%d %b, %Y') }}</td>
+                                    <td>{{ booking.start_time.strftime('%I:%M %p') }} - {{ booking.end_time.strftime('%I:%M %p') }}</td>
+                                    <td>{{ booking.player.user.username }}</td>
+                                    <td>₹{{ booking.total_price }}</td>
+                                    <td>
+                                        {% if booking.payment_status == 'paid' %}
+                                            <span class="badge bg-success">Paid</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">Unpaid</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <form method="POST" action="{{ url_for('update_booking_status', booking_id=booking.id, status='cancelled') }}">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger status-update-btn" data-status="cancel" data-booking-id="{{ booking.id }}">
+                                                <i class="fas fa-times"></i> Cancel
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i> No confirmed bookings found.
+                </div>
+            {% endif %}
+        </div>
+        
+        <!-- Completed Bookings -->
+        <div class="tab-pane fade" id="completed" role="tabpanel" aria-labelledby="completed-tab">
+            {% set completed_bookings = bookings|selectattr('status', 'equalto', 'completed')|list %}
+            {% if completed_bookings %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Turf</th>
+                                <th>Date</th>
+                                <th>Time</th>
+                                <th>Player</th>
+                                <th>Price</th>
+                                <th>Payment</th>
+                                <th>Review</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for booking in completed_bookings %}
+                                <tr>
+                                    <td>{{ booking.turf.name }}</td>
+                                    <td>{{ booking.booking_date.strftime('%d %b, %Y') }}</td>
+                                    <td>{{ booking.start_time.strftime('%I:%M %p') }} - {{ booking.end_time.strftime('%I:%M %p') }}</td>
+                                    <td>{{ booking.player.user.username }}</td>
+                                    <td>₹{{ booking.total_price }}</td>
+                                    <td>
+                                        {% if booking.payment_status == 'paid' %}
+                                            <span class="badge bg-success">Paid</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">Unpaid</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if booking.review %}
+                                            <div class="star-rating">
+                                                {% for i in range(booking.review.rating) %}
+                                                    <i class="fas fa-star text-warning"></i>
+                                                {% endfor %}
+                                                {% for i in range(5 - booking.review.rating) %}
+                                                    <i class="far fa-star text-warning"></i>
+                                                {% endfor %}
+                                            </div>
+                                        {% else %}
+                                            <span class="text-muted">No review yet</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i> No completed bookings found.
+                </div>
+            {% endif %}
+        </div>
+        
+        <!-- Cancelled Bookings -->
+        <div class="tab-pane fade" id="cancelled" role="tabpanel" aria-labelledby="cancelled-tab">
+            {% set cancelled_bookings = bookings|selectattr('status', 'equalto', 'cancelled')|list %}
+            {% if cancelled_bookings %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Turf</th>
+                                <th>Date</th>
+                                <th>Time</th>
+                                <th>Player</th>
+                                <th>Price</th>
+                                <th>Payment</th>
+                                <th>Cancelled On</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for booking in cancelled_bookings %}
+                                <tr>
+                                    <td>{{ booking.turf.name }}</td>
+                                    <td>{{ booking.booking_date.strftime('%d %b, %Y') }}</td>
+                                    <td>{{ booking.start_time.strftime('%I:%M %p') }} - {{ booking.end_time.strftime('%I:%M %p') }}</td>
+                                    <td>{{ booking.player.user.username }}</td>
+                                    <td>₹{{ booking.total_price }}</td>
+                                    <td>
+                                        {% if booking.payment_status == 'paid' %}
+                                            <span class="badge bg-success">Paid</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">Unpaid</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ booking.created_at.strftime('%d %b, %Y') }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i> No cancelled bookings found.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/turf_management.js') }}"></script>
+{% endblock %}

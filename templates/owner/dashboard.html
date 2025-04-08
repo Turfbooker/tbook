@@ -1,0 +1,227 @@
+{% extends "layout.html" %}
+
+{% block title %}Owner Dashboard - TurfBook{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="mb-4">Welcome, {{ current_user.username }}!</h1>
+    
+    <!-- Dashboard Stats -->
+    <div class="row dashboard-stats mb-4">
+        <div class="col-md-4 mb-3">
+            <div class="card h-100">
+                <div class="card-body d-flex align-items-center">
+                    <div class="icon me-3 text-primary">
+                        <i class="fas fa-futbol"></i>
+                    </div>
+                    <div>
+                        <h6 class="text-muted mb-1">Total Turfs</h6>
+                        <h3 class="mb-0">{{ turfs|length }}</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card h-100">
+                <div class="card-body d-flex align-items-center">
+                    <div class="icon me-3 text-success">
+                        <i class="fas fa-calendar-check"></i>
+                    </div>
+                    <div>
+                        <h6 class="text-muted mb-1">Upcoming Bookings</h6>
+                        <h3 class="mb-0">{{ upcoming_bookings_count }}</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card h-100">
+                <div class="card-body d-flex align-items-center">
+                    <div class="icon me-3 text-warning">
+                        <i class="fas fa-rupee-sign"></i>
+                    </div>
+                    <div>
+                        <h6 class="text-muted mb-1">Total Earnings</h6>
+                        <h3 class="mb-0">₹{{ total_earnings }}</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <!-- Recent Bookings -->
+        <div class="col-md-8 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-primary bg-opacity-25">
+                    <h5 class="mb-0">Recent Bookings</h5>
+                </div>
+                <div class="card-body">
+                    {% if recent_bookings %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Turf</th>
+                                        <th>Date</th>
+                                        <th>Time</th>
+                                        <th>Player</th>
+                                        <th>Status</th>
+                                        <th>Payment</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for booking in recent_bookings %}
+                                        <tr>
+                                            <td>{{ booking.turf.name }}</td>
+                                            <td>{{ booking.booking_date.strftime('%d %b, %Y') }}</td>
+                                            <td>{{ booking.start_time.strftime('%I:%M %p') }} - {{ booking.end_time.strftime('%I:%M %p') }}</td>
+                                            <td>{{ booking.player.user.username }}</td>
+                                            <td>
+                                                {% if booking.status == 'pending' %}
+                                                    <span class="badge bg-warning text-dark">Pending</span>
+                                                {% elif booking.status == 'confirmed' %}
+                                                    <span class="badge bg-success">Confirmed</span>
+                                                {% elif booking.status == 'cancelled' %}
+                                                    <span class="badge bg-danger">Cancelled</span>
+                                                {% elif booking.status == 'completed' %}
+                                                    <span class="badge bg-info">Completed</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                {% if booking.payment_status == 'paid' %}
+                                                    <span class="badge bg-success">Paid</span>
+                                                {% else %}
+                                                    <span class="badge bg-danger">Unpaid</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="text-end">
+                            <a href="{{ url_for('booking_requests') }}" class="btn btn-link">View All Bookings</a>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i> No bookings found. Once players book your turfs, they will appear here.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Quick Actions -->
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-success bg-opacity-25">
+                    <h5 class="mb-0">Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-3">
+                        <a href="{{ url_for('add_turf') }}" class="btn btn-primary">
+                            <i class="fas fa-plus-circle me-2"></i> Add New Turf
+                        </a>
+                        <a href="{{ url_for('turf_management') }}" class="btn btn-outline-primary">
+                            <i class="fas fa-tasks me-2"></i> Manage Turfs
+                        </a>
+                        <a href="{{ url_for('booking_requests') }}" class="btn btn-outline-primary">
+                            <i class="fas fa-calendar-alt me-2"></i> Manage Bookings
+                        </a>
+                        <a href="{{ url_for('owner_profile') }}" class="btn btn-outline-primary">
+                            <i class="fas fa-user-cog me-2"></i> Update Profile
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Your Turfs -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-primary bg-opacity-25 d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Your Turfs</h5>
+                    <a href="{{ url_for('add_turf') }}" class="btn btn-sm btn-primary">
+                        <i class="fas fa-plus me-1"></i> Add Turf
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% if turfs %}
+                        <div class="row">
+                            {% for turf in turfs %}
+                                <div class="col-md-4 mb-4">
+                                    <div class="card h-100">
+                                        <div class="card-img-top turf-card-img bg-dark d-flex align-items-center justify-content-center">
+                                            <i class="fas fa-futbol fa-3x text-muted"></i>
+                                        </div>
+                                        <div class="card-body">
+                                            <h5 class="card-title">{{ turf.name }}</h5>
+                                            <p class="card-text text-muted">{{ turf.location }}</p>
+                                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                                <span class="badge bg-info">{{ turf.surface_type }}</span>
+                                                <span class="fw-bold">₹{{ turf.price_per_hour }}/hr</span>
+                                            </div>
+                                            <div class="btn-group w-100">
+                                                <a href="{{ url_for('edit_turf', turf_id=turf.id) }}" class="btn btn-outline-primary">
+                                                    <i class="fas fa-edit me-1"></i> Edit
+                                                </a>
+                                                <a href="{{ url_for('turf_details', turf_id=turf.id) }}" class="btn btn-outline-info">
+                                                    <i class="fas fa-eye me-1"></i> View
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i> You haven't added any turfs yet. Click on "Add Turf" to get started.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Booking Stats -->
+    <div class="row mb-4">
+        <div class="col-md-6 mb-3">
+            <div class="card h-100">
+                <div class="card-header bg-info bg-opacity-25">
+                    <h5 class="mb-0">Booking Statistics</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="booking-stats-chart" 
+                            data-labels='["Pending", "Confirmed", "Cancelled", "Completed"]'
+                            data-values='[{{ recent_bookings|selectattr("status", "equalto", "pending")|list|length }}, 
+                                         {{ recent_bookings|selectattr("status", "equalto", "confirmed")|list|length }}, 
+                                         {{ recent_bookings|selectattr("status", "equalto", "cancelled")|list|length }}, 
+                                         {{ recent_bookings|selectattr("status", "equalto", "completed")|list|length }}]'>
+                    </canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 mb-3">
+            <div class="card h-100">
+                <div class="card-header bg-success bg-opacity-25">
+                    <h5 class="mb-0">Revenue Overview</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="revenue-chart" 
+                            data-labels='["Last Week", "This Week"]'
+                            data-values='[{{ total_earnings - 500 }}, {{ total_earnings }}]'>
+                    </canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/turf_management.js') }}"></script>
+{% endblock %}

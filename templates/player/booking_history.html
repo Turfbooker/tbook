@@ -1,0 +1,88 @@
+{% extends "layout.html" %}
+
+{% block title %}Booking History - TurfBook{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="mb-4">Booking History</h1>
+    
+    <div class="card">
+        <div class="card-header bg-primary bg-opacity-25">
+            <h5 class="mb-0">Your Bookings</h5>
+        </div>
+        <div class="card-body">
+            {% if bookings %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Turf</th>
+                                <th>Date</th>
+                                <th>Time</th>
+                                <th>Price</th>
+                                <th>Status</th>
+                                <th>Payment</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for booking in bookings %}
+                                <tr>
+                                    <td>{{ booking.turf.name }}</td>
+                                    <td>{{ booking.booking_date.strftime('%d %b, %Y') }}</td>
+                                    <td>{{ booking.start_time.strftime('%I:%M %p') }} - {{ booking.end_time.strftime('%I:%M %p') }}</td>
+                                    <td>₹{{ booking.total_price }}</td>
+                                    <td>
+                                        {% if booking.status == 'pending' %}
+                                            <span class="badge bg-warning text-dark">Pending</span>
+                                        {% elif booking.status == 'confirmed' %}
+                                            <span class="badge bg-success">Confirmed</span>
+                                        {% elif booking.status == 'cancelled' %}
+                                            <span class="badge bg-danger">Cancelled</span>
+                                        {% elif booking.status == 'completed' %}
+                                            <span class="badge bg-info">Completed</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if booking.payment_status == 'paid' %}
+                                            <span class="badge bg-success">Paid</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">Unpaid</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <a href="{{ url_for('turf_details', turf_id=booking.turf.id) }}" class="btn btn-outline-primary" title="View Turf">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            
+                                            {% if booking.payment_status == 'unpaid' %}
+                                                <a href="{{ url_for('checkout', booking_id=booking.id) }}" class="btn btn-outline-success" title="Pay Now">
+                                                    <i class="fas fa-credit-card"></i>
+                                                </a>
+                                            {% endif %}
+                                            
+                                            {% if booking.status == 'completed' and not booking.review %}
+                                                <a href="{{ url_for('add_review', booking_id=booking.id) }}" class="btn btn-outline-info" title="Add Review">
+                                                    <i class="fas fa-star"></i>
+                                                </a>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i> You haven't made any bookings yet.
+                </div>
+                <div class="text-center mt-3">
+                    <a href="{{ url_for('player_dashboard') }}" class="btn btn-primary">Find a Turf</a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

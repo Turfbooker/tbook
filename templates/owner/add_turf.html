@@ -1,0 +1,168 @@
+{% extends "layout.html" %}
+
+{% block title %}{% if turf %}Edit Turf{% else %}Add Turf{% endif %} - TurfBook{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card shadow">
+                <div class="card-header bg-primary bg-opacity-25">
+                    <h3 class="mb-0">{% if turf %}Edit Turf: {{ turf.name }}{% else %}Add New Turf{% endif %}</h3>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{% if turf %}{{ url_for('edit_turf', turf_id=turf.id) }}{% else %}{{ url_for('add_turf') }}{% endif %}">
+                        {{ form.hidden_tag() }}
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    {{ form.name.label(class="form-label") }}
+                                    {% if form.name.errors %}
+                                        {{ form.name(class="form-control is-invalid") }}
+                                        <div class="invalid-feedback">
+                                            {% for error in form.name.errors %}
+                                                <span>{{ error }}</span>
+                                            {% endfor %}
+                                        </div>
+                                    {% else %}
+                                        {{ form.name(class="form-control") }}
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    {{ form.location.label(class="form-label") }}
+                                    {% if form.location.errors %}
+                                        {{ form.location(class="form-control is-invalid") }}
+                                        <div class="invalid-feedback">
+                                            {% for error in form.location.errors %}
+                                                <span>{{ error }}</span>
+                                            {% endfor %}
+                                        </div>
+                                    {% else %}
+                                        {{ form.location(class="form-control") }}
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            {{ form.description.label(class="form-label") }}
+                            {% if form.description.errors %}
+                                {{ form.description(class="form-control is-invalid", rows=4) }}
+                                <div class="invalid-feedback">
+                                    {% for error in form.description.errors %}
+                                        <span>{{ error }}</span>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                {{ form.description(class="form-control", rows=4) }}
+                            {% endif %}
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    {{ form.price_per_hour.label(class="form-label") }}
+                                    {% if form.price_per_hour.errors %}
+                                        {{ form.price_per_hour(class="form-control is-invalid") }}
+                                        <div class="invalid-feedback">
+                                            {% for error in form.price_per_hour.errors %}
+                                                <span>{{ error }}</span>
+                                            {% endfor %}
+                                        </div>
+                                    {% else %}
+                                        {{ form.price_per_hour(class="form-control") }}
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    {{ form.size.label(class="form-label") }}
+                                    {% if form.size.errors %}
+                                        {{ form.size(class="form-control is-invalid") }}
+                                        <div class="invalid-feedback">
+                                            {% for error in form.size.errors %}
+                                                <span>{{ error }}</span>
+                                            {% endfor %}
+                                        </div>
+                                    {% else %}
+                                        {{ form.size(class="form-control") }}
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    {{ form.surface_type.label(class="form-label") }}
+                                    {% if form.surface_type.errors %}
+                                        {{ form.surface_type(class="form-select is-invalid") }}
+                                        <div class="invalid-feedback">
+                                            {% for error in form.surface_type.errors %}
+                                                <span>{{ error }}</span>
+                                            {% endfor %}
+                                        </div>
+                                    {% else %}
+                                        {{ form.surface_type(class="form-select") }}
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    {{ form.opening_time.label(class="form-label") }}
+                                    {% if form.opening_time.errors %}
+                                        {{ form.opening_time(class="form-control is-invalid") }}
+                                        <div class="invalid-feedback">
+                                            {% for error in form.opening_time.errors %}
+                                                <span>{{ error }}</span>
+                                            {% endfor %}
+                                        </div>
+                                    {% else %}
+                                        {{ form.opening_time(class="form-control") }}
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    {{ form.closing_time.label(class="form-label") }}
+                                    {% if form.closing_time.errors %}
+                                        {{ form.closing_time(class="form-control is-invalid") }}
+                                        <div class="invalid-feedback">
+                                            {% for error in form.closing_time.errors %}
+                                                <span>{{ error }}</span>
+                                            {% endfor %}
+                                        </div>
+                                    {% else %}
+                                        {{ form.closing_time(class="form-control") }}
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label class="form-label">Amenities</label>
+                            <div class="input-group mb-2">
+                                <input type="text" id="new-amenity" class="form-control" placeholder="Add an amenity (e.g., Changing Rooms, Parking)">
+                                <button type="button" class="btn btn-primary" id="add-amenity">Add</button>
+                            </div>
+                            <div id="amenities-display" class="mb-2"></div>
+                            {{ form.amenities(id="amenities", class="form-control d-none") }}
+                        </div>
+                        
+                        <div class="d-grid">
+                            {{ form.submit(class="btn btn-primary btn-lg") }}
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/turf_management.js') }}"></script>
+{% endblock %}

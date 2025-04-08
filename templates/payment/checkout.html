@@ -1,0 +1,158 @@
+{% extends "layout.html" %}
+
+{% block title %}Checkout - TurfBook{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary bg-opacity-25">
+                    <h3 class="mb-0">Checkout</h3>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h5>Booking Details</h5>
+                            <dl class="row">
+                                <dt class="col-sm-4">Turf</dt>
+                                <dd class="col-sm-8">{{ booking.turf.name }}</dd>
+                                
+                                <dt class="col-sm-4">Date</dt>
+                                <dd class="col-sm-8">{{ booking.booking_date.strftime('%d %B, %Y') }}</dd>
+                                
+                                <dt class="col-sm-4">Time</dt>
+                                <dd class="col-sm-8">{{ booking.start_time.strftime('%I:%M %p') }} - {{ booking.end_time.strftime('%I:%M %p') }}</dd>
+                                
+                                <dt class="col-sm-4">Duration</dt>
+                                {% set duration = ((booking.end_time.hour * 60 + booking.end_time.minute) - (booking.start_time.hour * 60 + booking.start_time.minute)) / 60 %}
+                                <dd class="col-sm-8">{{ duration }} hour(s)</dd>
+                            </dl>
+                        </div>
+                        <div class="col-md-6">
+                            <h5>Price Summary</h5>
+                            <dl class="row">
+                                <dt class="col-sm-8">Hourly Rate</dt>
+                                <dd class="col-sm-4">₹{{ booking.turf.price_per_hour }}</dd>
+                                
+                                <dt class="col-sm-8">Duration</dt>
+                                <dd class="col-sm-4">{{ duration }} hour(s)</dd>
+                                
+                                <dt class="col-sm-8">Subtotal</dt>
+                                <dd class="col-sm-4">₹{{ booking.total_price }}</dd>
+                                
+                                <dt class="col-sm-8">Tax</dt>
+                                <dd class="col-sm-4">₹0.00</dd>
+                                
+                                <dt class="col-sm-8 border-top pt-2">Total</dt>
+                                <dd class="col-sm-4 border-top pt-2 fw-bold">₹{{ booking.total_price }}</dd>
+                            </dl>
+                        </div>
+                    </div>
+                    
+                    <!-- Payment Method -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h5>Payment Method</h5>
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle me-2"></i> We use Stripe for secure payments. You'll be redirected to Stripe to complete your payment.
+                            </div>
+                            
+                            <div class="payment-logos d-flex justify-content-start mb-3">
+                                <i class="fab fa-cc-visa fa-2x me-2"></i>
+                                <i class="fab fa-cc-mastercard fa-2x me-2"></i>
+                                <i class="fab fa-cc-amex fa-2x me-2"></i>
+                                <i class="fab fa-cc-discover fa-2x"></i>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Terms and Checkout Button -->
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="form-check mb-3">
+                                <input class="form-check-input" type="checkbox" id="termsCheck" required>
+                                <label class="form-check-label" for="termsCheck">
+                                    I agree to the <a href="#" data-bs-toggle="modal" data-bs-target="#termsModal">terms and conditions</a>
+                                </label>
+                            </div>
+                            
+                            <form action="{{ url_for('create_checkout_session', booking_id=booking.id) }}" method="POST">
+                                <div class="d-grid">
+                                    <button type="submit" class="btn btn-primary btn-lg" id="checkout-button" disabled>
+                                        Pay Now - ₹{{ booking.total_price }}
+                                    </button>
+                                </div>
+                            </form>
+                            
+                            <div class="text-center mt-3">
+                                <a href="{{ url_for('booking_history') }}" class="btn btn-link">Cancel and return to bookings</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Terms and Conditions Modal -->
+<div class="modal fade" id="termsModal" tabindex="-1" aria-labelledby="termsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="termsModalLabel">Terms and Conditions</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <h6>Booking Terms</h6>
+                <p>By proceeding with this payment, you agree to the following terms:</p>
+                <ul>
+                    <li>Cancellation Policy: Bookings can be cancelled up to 24 hours before the scheduled time for a full refund.</li>
+                    <li>Late Arrivals: If you arrive more than 15 minutes late, your booking time may be reduced without refund.</li>
+                    <li>No-shows: If you do not show up for your booking, no refund will be provided.</li>
+                    <li>Weather Policy: In case of inclement weather, the turf owner may cancel the booking and provide a full refund or reschedule.</li>
+                </ul>
+                
+                <h6>Payment Terms</h6>
+                <ul>
+                    <li>Your payment information is securely processed by Stripe.</li>
+                    <li>We do not store your credit card information.</li>
+                    <li>The total amount will be charged to your card immediately upon confirmation.</li>
+                </ul>
+                
+                <h6>Turf Usage</h6>
+                <ul>
+                    <li>You agree to use the turf facilities responsibly.</li>
+                    <li>Any damage to the turf or facilities caused by you or your group may result in additional charges.</li>
+                    <li>You must follow all rules and regulations set by the turf owner.</li>
+                </ul>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">I Agree</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Enable checkout button when terms are checked
+        const termsCheck = document.getElementById('termsCheck');
+        const checkoutButton = document.getElementById('checkout-button');
+        
+        termsCheck.addEventListener('change', function() {
+            checkoutButton.disabled = !this.checked;
+        });
+        
+        // Automatically check terms when agreeing in modal
+        const modalAgreeButton = document.querySelector('#termsModal .btn-primary');
+        modalAgreeButton.addEventListener('click', function() {
+            termsCheck.checked = true;
+            checkoutButton.disabled = false;
+        });
+    });
+</script>
+{% endblock %}

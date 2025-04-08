@@ -1,0 +1,62 @@
+{% extends "layout.html" %}
+
+{% block title %}Payment Successful - TurfBook{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 text-center">
+            <div class="card shadow">
+                <div class="card-body p-5">
+                    <div class="mb-4 text-success">
+                        <i class="fas fa-check-circle fa-5x"></i>
+                    </div>
+                    <h2 class="mb-4">Payment Successful!</h2>
+                    <p class="lead mb-4">Thank you for your booking. Your payment has been successfully processed.</p>
+                    
+                    <div class="card mb-4">
+                        <div class="card-body">
+                            <h5 class="card-title mb-3">Booking Details</h5>
+                            <div class="row text-start">
+                                <div class="col-md-6">
+                                    <dl>
+                                        <dt>Booking ID</dt>
+                                        <dd>{{ booking.id }}</dd>
+                                        
+                                        <dt>Turf</dt>
+                                        <dd>{{ booking.turf.name }}</dd>
+                                        
+                                        <dt>Location</dt>
+                                        <dd>{{ booking.turf.location }}</dd>
+                                    </dl>
+                                </div>
+                                <div class="col-md-6">
+                                    <dl>
+                                        <dt>Date</dt>
+                                        <dd>{{ booking.booking_date.strftime('%d %B, %Y') }}</dd>
+                                        
+                                        <dt>Time</dt>
+                                        <dd>{{ booking.start_time.strftime('%I:%M %p') }} - {{ booking.end_time.strftime('%I:%M %p') }}</dd>
+                                        
+                                        <dt>Amount Paid</dt>
+                                        <dd>₹{{ booking.total_price }}</dd>
+                                    </dl>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i> A confirmation email has been sent to your registered email address.
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-center mt-4">
+                        <a href="{{ url_for('player_dashboard') }}" class="btn btn-primary">Go to Dashboard</a>
+                        <a href="{{ url_for('booking_history') }}" class="btn btn-outline-primary">View Booking History</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

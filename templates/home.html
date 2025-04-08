@@ -1,0 +1,138 @@
+{% extends "layout.html" %}
+
+{% block title %}TurfBook - Book Sports Grounds Online{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="container">
+        <div class="hero-content">
+            <h1 class="display-4 fw-bold mb-4">Find and Book Sports Turfs</h1>
+            <p class="lead mb-4">Book your favorite sports ground online with just a few clicks. Play football, cricket, tennis, and more at various locations.</p>
+            <div class="d-grid gap-2 d-md-flex justify-content-md-start">
+                {% if current_user.is_authenticated %}
+                    {% if current_user.role == 'player' %}
+                        <a href="{{ url_for('player_dashboard') }}" class="btn btn-primary btn-lg px-4 me-md-2">Dashboard</a>
+                    {% elif current_user.role == 'owner' %}
+                        <a href="{{ url_for('owner_dashboard') }}" class="btn btn-primary btn-lg px-4 me-md-2">Dashboard</a>
+                    {% endif %}
+                {% else %}
+                    <a href="{{ url_for('signup') }}" class="btn btn-primary btn-lg px-4 me-md-2">Sign Up</a>
+                    <a href="{{ url_for('login') }}" class="btn btn-outline-light btn-lg px-4">Login</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Featured Turfs Section -->
+<section class="container mb-5">
+    <h2 class="text-center mb-4">Featured Turfs</h2>
+    <div class="row">
+        {% if turfs %}
+            {% for turf in turfs %}
+                <div class="col-md-4 mb-4">
+                    <div class="card turf-card">
+                        <div class="card-img-top turf-card-img bg-dark d-flex align-items-center justify-content-center">
+                            <i class="fas fa-futbol fa-3x text-muted"></i>
+                        </div>
+                        <div class="card-body">
+                            <h5 class="card-title">{{ turf.name }}</h5>
+                            <p class="card-text text-muted">{{ turf.location }}</p>
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="badge bg-info">{{ turf.surface_type }}</span>
+                                <span class="fw-bold">₹{{ turf.price_per_hour }}/hr</span>
+                            </div>
+                            <a href="{{ url_for('turf_details', turf_id=turf.id) }}" class="btn btn-outline-primary w-100">View Details</a>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="col-12">
+                <div class="alert alert-info">
+                    No turfs available at the moment. Check back later!
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</section>
+
+<!-- How It Works Section -->
+<section class="container mb-5">
+    <h2 class="text-center mb-4">How It Works</h2>
+    <div class="row text-center">
+        <div class="col-md-4 mb-4">
+            <div class="p-3">
+                <div class="bg-primary bg-opacity-10 p-3 rounded-circle d-inline-block mb-3">
+                    <i class="fas fa-search fa-2x text-primary"></i>
+                </div>
+                <h4>Find a Turf</h4>
+                <p>Search for turfs by location, date, or type. Browse through various options to find your perfect match.</p>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="p-3">
+                <div class="bg-primary bg-opacity-10 p-3 rounded-circle d-inline-block mb-3">
+                    <i class="fas fa-calendar-alt fa-2x text-primary"></i>
+                </div>
+                <h4>Book Your Slot</h4>
+                <p>Choose your preferred date and time slot. Make the booking with a simple, secure process.</p>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="p-3">
+                <div class="bg-primary bg-opacity-10 p-3 rounded-circle d-inline-block mb-3">
+                    <i class="fas fa-futbol fa-2x text-primary"></i>
+                </div>
+                <h4>Play & Enjoy</h4>
+                <p>Arrive at the venue and enjoy your game. Rate your experience to help others in the community.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- User Types Section -->
+<section class="container mb-5">
+    <div class="row">
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h3><i class="fas fa-user me-2 text-primary"></i> For Players</h3>
+                    <ul class="list-group list-group-flush mt-3">
+                        <li class="list-group-item bg-transparent">Search turfs by location and availability</li>
+                        <li class="list-group-item bg-transparent">Book slots online instantly</li>
+                        <li class="list-group-item bg-transparent">Pay securely through the platform</li>
+                        <li class="list-group-item bg-transparent">Manage all your bookings in one place</li>
+                        <li class="list-group-item bg-transparent">Review and rate your experience</li>
+                    </ul>
+                    {% if not current_user.is_authenticated or current_user.role != 'player' %}
+                        <div class="mt-3">
+                            <a href="{{ url_for('signup') }}" class="btn btn-primary">Register as a Player</a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h3><i class="fas fa-store me-2 text-success"></i> For Turf Owners</h3>
+                    <ul class="list-group list-group-flush mt-3">
+                        <li class="list-group-item bg-transparent">List your turf and reach more players</li>
+                        <li class="list-group-item bg-transparent">Manage your turf details and availability</li>
+                        <li class="list-group-item bg-transparent">Accept or reject booking requests</li>
+                        <li class="list-group-item bg-transparent">Track bookings and payments</li>
+                        <li class="list-group-item bg-transparent">Receive reviews and improve your service</li>
+                    </ul>
+                    {% if not current_user.is_authenticated or current_user.role != 'owner' %}
+                        <div class="mt-3">
+                            <a href="{{ url_for('signup') }}" class="btn btn-success">Register as a Turf Owner</a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
