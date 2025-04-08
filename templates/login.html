@@ -68,21 +68,35 @@
 {% block extra_js %}
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Set default value for role select
-        document.querySelector('input[name="role"]').value = 'player';
-        
-        // Handle role toggle
-        const roleButtons = document.querySelectorAll('.role-toggle button');
+        // Get the role input element
         const roleInput = document.querySelector('input[name="role"]');
         
-        roleButtons.forEach(button => {
-            button.addEventListener('click', function() {
-                roleButtons.forEach(btn => btn.classList.remove('active', 'btn-primary'));
-                button.classList.remove('btn-outline-primary');
-                button.classList.add('active', 'btn-primary');
-                roleInput.value = button.dataset.role;
+        // Only proceed if the roleInput exists on this page
+        if (roleInput) {
+            // Set default value for role select
+            roleInput.value = 'player';
+            
+            // Handle role toggle
+            const roleButtons = document.querySelectorAll('.role-toggle button');
+            
+            roleButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    // Remove active class from all buttons
+                    roleButtons.forEach(btn => {
+                        btn.classList.remove('active', 'btn-primary');
+                        btn.classList.add('btn-outline-primary');
+                    });
+                    
+                    // Add active class to clicked button
+                    button.classList.remove('btn-outline-primary');
+                    button.classList.add('active', 'btn-primary');
+                    
+                    // Set the role input value
+                    roleInput.value = button.dataset.role;
+                    console.log('Role changed to:', button.dataset.role);
+                });
             });
-        });
+        }
     });
 </script>
 {% endblock %}

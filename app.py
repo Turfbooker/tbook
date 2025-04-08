@@ -10,8 +10,10 @@ from flask_login import LoginManager
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
 
+
 class Base(DeclarativeBase):
     pass
+
 
 # Initialize database
 db = SQLAlchemy(model_class=Base)
@@ -19,7 +21,8 @@ db = SQLAlchemy(model_class=Base)
 # Create the app
 app = Flask(__name__)
 app.secret_key = os.environ.get("SESSION_SECRET")
-app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)  # needed for url_for to generate with https
+app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1,
+                        x_host=1)  # needed for url_for to generate with https
 
 # Configure the database connection
 app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL")
@@ -43,6 +46,6 @@ with app.app_context():
     import models
     import routes
     import auth
-    
+
     # Create database tables
     db.create_all()

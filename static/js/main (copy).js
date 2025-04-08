@@ -21,8 +21,19 @@ document.addEventListener('DOMContentLoaded', function() {
         searchDateInput.value = `${year}-${month}-${day}`;
     }
 
-    // Role toggle is now handled in individual pages (login.html, signup.html)
-    // Removed from main.js to avoid conflicts
+    // Handle role toggle in login/signup forms
+    const roleToggleButtons = document.querySelectorAll('.role-toggle .btn');
+    const roleInput = document.querySelector('input[name="role"]');
+    
+    if (roleToggleButtons.length && roleInput) {
+        roleToggleButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                roleToggleButtons.forEach(btn => btn.classList.remove('active', 'btn-primary'));
+                this.classList.add('active', 'btn-primary');
+                roleInput.value = this.dataset.role;
+            });
+        });
+    }
 
     // Display confirmation dialogs for important actions
     const confirmationForms = document.querySelectorAll('.needs-confirmation');
